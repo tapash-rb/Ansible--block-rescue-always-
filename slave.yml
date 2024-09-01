@@ -1,0 +1,55 @@
+- hosts: all
+  become: yes  # Gain root privileges where necessary
+  tasks:
+    - block:
+        - name: Install Git, Tree, and Maven on Ubuntu servers
+          apt:
+            name:
+              - git
+              - tree
+              - maven
+            state: present
+          when: ansible_os_family == "Debian"
+
+        - name: Install Git, Tree, and Maven on RedHat/CentOS/Amazon Linux
+          yum:
+            name:
+              - git
+              - tree
+              - maven
+            state: present
+          when: ansible_os_family == "RedHat"
+
+      rescue:
+        - name: Handle installation failure
+          debug:
+            msg: "Package installation failed on one of the nodes. Please check the logs for more details."
+
+      always:
+        - name: Confirm Git installation status
+          shell: "which git && git --version"
+          register: git_status
+          ignore_errors: yes  # Ignore errors in case the command fails
+
+        - name: Confirm Tree installation status
+          shell: "which tree && tree --version"
+          register: tree_status
+          ignore_errors: yes  # Ignore errors in case the command fails
+
+        - name: Confirm Maven installation status
+          shell: "which mvn && mvn --version"
+          register: maven_status
+          ignore_errors: yes  # Ignore errors in case the command fails
+
+        - name: Show Git installation status
+          debug:
+            var: git_status
+
+        - name: Show Tree installation status
+          debug:
+            var: tree_status
+
+        - name: Show Maven installation status
+          debug:
+            var: maven_status
+
